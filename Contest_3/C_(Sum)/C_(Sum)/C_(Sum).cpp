@@ -6,7 +6,7 @@
 
 using namespace std;
 
-typedef long long key_t;
+typedef unsigned long long key_t;
 
 enum node_color {
 	black_node,
@@ -16,6 +16,7 @@ enum node_color {
 struct Node {
 	key_t key = {};
 	node_color color = {};
+	unsigned long long subSum = 0;
 
 	Node* parent = nullptr;
 	Node* left = nullptr;
@@ -38,6 +39,8 @@ public:
 	Node* FindNode(key_t key);
 
 	Node* FindNextNode(Node* node);
+
+	unsigned long long CalcIntervSum(key_t left, key_t right);
 
 private:
 	Node* Brother(Node* node, Node* parent = nullptr);
@@ -75,6 +78,13 @@ private:
 	void Delete_case3_5(Node* node, Node* parent);
 
 	void Delete_case3_6(Node* node, Node* parent);
+
+	Node* FindMinRoot(Node* curNode, key_t l, key_t r);
+
+	void SubSumForLeft(Node* curNode, key_t l, unsigned long long& sum);
+
+	void SubSumForRight(Node* curNode, key_t r, unsigned long long& sum);
+
 };
 
 
@@ -195,6 +205,13 @@ void BRTree::RotateLeft(Node* node) {
 
 	node->parent = pivot;
 	pivot->left = node;
+
+	unsigned long long oldPivotSum = pivot->subSum;
+	pivot->subSum = node->subSum;
+	node->subSum -= oldPivotSum;
+	if (node->right != nullptr) {
+		node->subSum += node->right->subSum;
+	}
 }
 
 
@@ -221,11 +238,20 @@ void BRTree::RotateRight(Node* node) {
 
 	pivot->right = node;
 	node->parent = pivot;
+
+	unsigned long long oldPivotSum = pivot->subSum;
+	pivot->subSum = node->subSum;
+	node->subSum -= oldPivotSum;
+	if (node->left != nullptr) {
+		node->subSum += node->left->subSum;
+	}
 }
 
 
 void BRTree::AppendNode(Node* node) {
 	assert(node != nullptr);
+
+	node->subSum = node->key;
 
 	if (root == nullptr) {
 		root = node;
@@ -235,6 +261,8 @@ void BRTree::AppendNode(Node* node) {
 	Node* curNode = root;
 
 	while (true) {
+		curNode->subSum += node->key;
+
 		if (node->key < curNode->key) {
 			if (curNode->left == nullptr) {
 				curNode->left = node;
@@ -512,6 +540,13 @@ void BRTree::DeleteNode(Node* node) {
 	}
 	swap(node->key, delNode->key);
 
+
+	Node* curNode = delNode->parent;
+	while (curNode != nullptr) {
+		curNode->subSum -= delNode->key;
+		curNode = curNode->parent;
+	}
+
 	Node* child = nullptr;
 	if (delNode->left != nullptr) {
 		assert(delNode->right == nullptr);
@@ -537,13 +572,99 @@ void BRTree::Delete(key_t key) {
 	DeleteNode(node);
 }
 
+
+Node* BRTree::FindMinRoot(Node* curNode, key_t l, key_t r) {
+
+	if (curNode == nullptr) {
+		return nullptr;
+	}
+
+	if (l <= curNode->key && r >= curNode->key) {
+		return curNode;
+	} else if (r < curNode->key) {
+		assert(l < curNode->key);
+
+		return FindMinRoot(curNode->left, l, r);
+	} else {
+		assert(l > curNode->key && r > curNode->key);
+
+		return FindMinRoot(curNode->right, l, r);
+	}
+}
+
+
+void BRTree::SubSumForLeft(Node* curNode, key_t l, unsigned long long& sum) {
+	if (curNode == nullptr) {
+		return;
+	}
+
+	if (l < curNode->key) {
+		SubSumForLeft(curNode->left, l, sum);
+
+	} else if (l > curNode->key) {
+		sum -= curNode->key;
+		if (curNode->left != nullptr) {
+			sum -= curNode->left->subSum;
+		}
+		
+		SubSumForLeft(curNode->right, l, sum);
+
+	} else {
+		if (curNode->left != nullptr) {
+			sum -= curNode->left->subSum;
+		}
+	}
+}
+
+
+void BRTree::SubSumForRight(Node* curNode, key_t r, unsigned long long& sum) {
+	if (curNode == nullptr) {
+		return;
+	}
+
+	if (r > curNode->key) {
+		SubSumForRight(curNode->right, r, sum);
+
+	} else if (r < curNode->key) {
+		sum -= curNode->key;
+		if (curNode->right != nullptr) {
+			sum -= curNode->right->subSum;
+		}
+
+		SubSumForRight(curNode->left, r, sum);
+
+	} else {
+		if (curNode->right != nullptr) {
+			if (r == curNode->right->key) {
+				SubSumForRight(curNode->right, r, sum);
+			} else {
+				sum -= curNode->right->subSum;
+			}
+		}
+	}
+}
+
+
+unsigned long long BRTree::CalcIntervSum(key_t l, key_t r) {
+
+	Node* minRootNode = FindMinRoot(root, l, r);    // The lowest node the subtree of which contains both left and right nodes
+	if (minRootNode == nullptr) {
+		return 0;
+	}
+
+	unsigned long long res = minRootNode->subSum;
+	SubSumForLeft(minRootNode->left, l, res);
+	SubSumForRight(minRootNode->right, r, res);
+
+	return res;
+}
 // End of black-red tree realization
 
 
 
-void AddCommand(BRTree& tree, char& lastComm, long long& lastOutp) {
-	long long param = 0;
-	scanf("%d%*c", &param);
+void AddCommand(BRTree& tree, char& lastComm, unsigned long long& lastOutp) {
+	unsigned long long param = 0;
+	scanf("%llu%*c", &param);
 
 	if (lastComm == '?') {
 		param = (param + lastOutp) % 1000000000;
@@ -558,49 +679,20 @@ void AddCommand(BRTree& tree, char& lastComm, long long& lastOutp) {
 
 
 
-void SumCommand(BRTree& tree, char& lastComm, long long& lastOutp) {
-	int l, r = 0;
-	scanf("%d %d%*c", &l, &r);
+void SumCommand(BRTree& tree, char& lastComm, unsigned long long& lastOutp) {
+	unsigned long long l, r = 0;
+	scanf("%llu %llu%*c", &l, &r);
 
+	unsigned long long sum = tree.CalcIntervSum(l, r);
 
-
-
-
-
-
-
-	//long long sum = 0;
-
-	//bool insertedL = false;
-	//Node* lNode = tree.FindNode(l);
-	//if (lNode) {
-	//	sum += l;
-	//} else {
-	//	lNode = tree.Insert(l);
-	//	insertedL = true;
-	//}
-
-	//Node* curNode = lNode;
-	//assert(curNode != nullptr);
-	//curNode = tree.FindNextNode(curNode);
-
-	//while (curNode != nullptr && curNode->key <= r) {
-	//	sum += curNode->key;
-	//	curNode = tree.FindNextNode(curNode);
-	//}
-
-	//printf("%lld\n", sum);
-
-	//if (insertedL) {
-	//	tree.DeleteNode(lNode);
-	//}
+	printf("%llu\n", sum);
 
 	lastOutp = sum;
 	lastComm = '?';
 }
 
 
-void ParseCommand(BRTree& tree, char& lastComm, long long& lastOutp) {
+void ParseCommand(BRTree& tree, char& lastComm, unsigned long long& lastOutp) {
 	char curCommand = 0;
 	scanf("%c ", &curCommand);
 
@@ -623,7 +715,7 @@ int main() {
 
 	BRTree tree;
 	char lastComm = 0;
-	long long lastOutp = 0;
+	unsigned long long lastOutp = 0;
 	for (int i = 0; i < n; ++i) {
 		ParseCommand(tree, lastComm, lastOutp);
 	}

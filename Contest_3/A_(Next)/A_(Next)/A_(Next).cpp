@@ -21,8 +21,6 @@ struct Node {
 
 class BRTree {
 public:
-	Node* root = nullptr;
-
 
 	BRTree() = default;
 
@@ -37,6 +35,9 @@ public:
 	bool NextExists(key_t key);
 
 private:
+	Node* root = nullptr;
+
+
 	Node* FindNode(key_t key);
 
 	Node* FindNextNode(Node* node);

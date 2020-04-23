@@ -18,5 +18,8 @@
     <ClCompile Include="F_(Set).cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Dimas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
