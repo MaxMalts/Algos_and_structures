@@ -1,0 +1,36 @@
+\documentclass[12pt,a4paper]{extreport}
+\usepackage[l2tabu,orthodox]{nag}
+
+% Пожалуйста, не меняйте указанные ниже установки полей в документе
+\usepackage[left=10mm,right=50mm, top=15mm,bottom=15mm,bindingoffset=0cm]{geometry}
+
+\usepackage{indentfirst}
+
+\usepackage{ccaption}
+\captiondelim{. }
+
+\usepackage{amssymb,amsmath,amsthm}
+
+\usepackage{fontspec}
+
+\setmainfont[Ligatures=TeX]{STIX}
+\newfontfamily{\cyrillicfont}[Ligatures=TeX]{STIX}
+\setmonofont{Fira Mono}
+\newfontfamily{\cyrillicfonttt}{Fira Mono}
+
+\usepackage{polyglossia}
+\setdefaultlanguage{russian}
+\setotherlanguage{english}
+
+\usepackage{graphicx}
+\graphicspath{{img/}}
+
+\begin{document}
+
+\input{solution-1.tex}\\
+
+\input{solution-3.tex}\\
+
+\input{solution-4.tex}
+
+\end{document}
