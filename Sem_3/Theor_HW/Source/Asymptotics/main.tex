@@ -1,0 +1,39 @@
+\documentclass[12pt,a4paper]{extreport}
+\usepackage[l2tabu,orthodox]{nag}
+
+\usepackage[left=40mm,right=40mm, top=50mm,bottom=50mm,bindingoffset=0cm]{geometry}
+
+\usepackage{indentfirst}
+
+\usepackage{ccaption}
+\captiondelim{. }
+
+\usepackage{amssymb,amsmath,amsthm}
+
+\usepackage{fontspec}
+
+\setmainfont[Ligatures=TeX]{STIX}
+\newfontfamily{\cyrillicfont}[Ligatures=TeX]{STIX}
+\setmonofont{Fira Mono}
+\newfontfamily{\cyrillicfonttt}{Fira Mono}
+
+\usepackage{polyglossia}
+\setdefaultlanguage{russian}
+\setotherlanguage{english}
+
+\usepackage{graphicx}
+\graphicspath{{img/}}
+
+\newenvironment{task}[1]
+    {\par\noindent\textbf{Задача #1.} }
+    {\bigskip}
+
+\begin{document}
+
+\input{task-1.tex}
+\input{task-2.tex}
+\input{task-3.tex}
+\input{task-5.tex}
+\input{task-6.tex}
+
+\end{document}
